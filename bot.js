@@ -1,0 +1,60 @@
+const { Client, GatewayIntentBits } = require('discord.js');
+const WebSocket = require('ws');
+
+require('dotenv').config();
+const TOKEN = process.env.TOKEN;
+
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+  ]
+});
+
+const wss = new WebSocket.Server({ port: 8080 });
+let overlays = [];
+
+wss.on('connection', ws => {
+  console.log('Overlay connecté');
+  overlays.push(ws);
+
+  ws.on('close', () => {
+    console.log('Overlay déconnecté');
+    overlays = overlays.filter(o => o !== ws);
+  });
+});
+
+client.on('clientReady', () => {
+  console.log(`Bot connecté : ${client.user.tag}`);
+});
+
+client.on('messageCreate', message => {
+  if (message.author.bot) return;
+  if (message.channel.name !== 'overlay-media') return;
+
+  if (message.attachments.size > 0) {
+    message.attachments.forEach(att => {
+      console.log('Média reçu :', att.url);
+
+      const isVideo = att.contentType?.startsWith('video/');
+
+      const payload = {
+  type: isVideo ? 'video' : 'image',
+  url: att.url,
+  author: message.member.displayName,
+  avatar: `https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.png`
+};
+
+      overlays.forEach(ws => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify(payload));
+        }
+      });
+    });
+  }
+});
+
+client.login(TOKEN)
+  .then(() => console.log('Connexion réussie'))
+  .catch(err => console.error('Erreur login :', err));

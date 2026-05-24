@@ -1,0 +1,31 @@
+{
+  "name": "glitch-overlay",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "node bot.js",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.glitch.overlay",
+    "productName": "Glitch Overlay",
+    "win": {
+      "target": "nsis"
+    },
+    "files": [
+  "index.html",
+  "main.js",
+  "package.json",
+  "icon.png"
+]
+  },
+  "dependencies": {
+    "discord.js": "^14.0.0",
+    "dotenv": "^17.4.2",
+    "ws": "^8.0.0"
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^latest"
+  }
+}
