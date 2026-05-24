@@ -3,6 +3,7 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 const Tray = electron.Tray;
 const Menu = electron.Menu;
+const screen = electron.screen;
 const path = require('path');
 
 let win;
@@ -16,24 +17,28 @@ let settings = {
 };
 
 function createOverlay() {
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { x, y, width, height } = primaryDisplay.bounds;
+
   win = new BrowserWindow({
-    width: 1920,
-    height: 1080,
+    width: width,
+    height: height,
     transparent: true,
     frame: false,
-    alwaysOnTop: true,
     skipTaskbar: true,
     focusable: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
     },
-    x: 0,
-    y: 0,
+    x: x,
+    y: y,
   });
 
   win.loadFile('index.html');
   win.setIgnoreMouseEvents(true);
+  win.setAlwaysOnTop(true, 'screen-saver');
+  win.setVisibleOnAllWorkspaces(true);
 }
 
 function sendSettings() {
@@ -80,7 +85,7 @@ function createTray() {
           { label: 'Milieu droit',  type: 'radio', checked: settings.position === 'middle-right',  click: () => { settings.position = 'middle-right';  sendSettings(); updateMenu(); } },
           { label: 'Bas gauche',    type: 'radio', checked: settings.position === 'bottom-left',   click: () => { settings.position = 'bottom-left';   sendSettings(); updateMenu(); } },
           { label: 'Bas centre',    type: 'radio', checked: settings.position === 'bottom-center', click: () => { settings.position = 'bottom-center'; sendSettings(); updateMenu(); } },
-          { label: 'Bas droit',     type: 'radio', checked: settings.position === 'bottom-right',  click: () => { settings.position = 'bottom-right'; sendSettings(); updateMenu(); } },
+          { label: 'Bas droit',     type: 'radio', checked: settings.position === 'bottom-right',  click: () => { settings.position = 'bottom-right';  sendSettings(); updateMenu(); } },
         ]
       },
       {

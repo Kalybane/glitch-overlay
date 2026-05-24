@@ -92,12 +92,14 @@ client.on('messageCreate', message => {
       console.log('Média reçu :', att.url);
 
       const isVideo = att.contentType?.startsWith('video/');
+      const isAudio = att.contentType?.startsWith('audio/');
 
       const payload = {
-        type: isVideo ? 'video' : 'image',
+        type: isVideo ? 'video' : isAudio ? 'audio' : 'image',
         url: att.url,
         author: message.member.displayName,
-        avatar: `https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.png`
+        avatar: `https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.png`,
+        caption: message.content || null
       };
 
       overlays.forEach(ws => {

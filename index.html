@@ -38,7 +38,7 @@
     #media-container video {
       width: 100%;
       display: block;
-      border-radius: 16px;
+      border-radius: 16px 16px 0 0;
     }
 
     #author-banner {
@@ -68,6 +68,20 @@
       font-weight: bold;
       text-shadow: 0 1px 4px rgba(0,0,0,0.8);
     }
+
+    #caption {
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 10px 14px;
+      font-size: 14px;
+      line-height: 1.4;
+      display: none;
+      border-radius: 0 0 16px 16px;
+    }
+
+    #caption.visible {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -80,6 +94,7 @@
         <span id="author-name">Pseudo</span>
       </div>
     </div>
+    <div id="caption"></div>
   </div>
 
   <script>
@@ -88,6 +103,7 @@
     const mediaSlot = document.getElementById('media-slot');
     const authorAvatar = document.getElementById('author-avatar');
     const authorName = document.getElementById('author-name');
+    const caption = document.getElementById('caption');
 
     const WS_PASSWORD = 'GlitchOverlay2026!';
 
@@ -122,7 +138,6 @@
       currentVolume = settings.volume / 100;
       container.style.width = sizes[settings.size];
 
-      // Reset toutes les positions
       container.style.top        = 'auto';
       container.style.left       = 'auto';
       container.style.bottom     = 'auto';
@@ -171,6 +186,47 @@
 
       authorAvatar.src = data.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png';
       authorName.textContent = data.author || 'Inconnu';
+
+      if (data.caption) {
+        caption.textContent = data.caption;
+        caption.classList.add('visible');
+      } else {
+        caption.textContent = '';
+        caption.classList.remove('visible');
+      }
+
+      if (data.type === 'audio') {
+        const audio = document.createElement('audio');
+        audio.src = data.url;
+        audio.autoplay = true;
+        audio.volume = currentVolume;
+        audio.loop = false;
+        audio.onended = () => {
+          hideMedia();
+          setTimeout(playNext, 500);
+        };
+
+        mediaSlot.innerHTML = `
+          <div style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 30px;
+            background: linear-gradient(135deg, #1DB954, #191414);
+            border-radius: 16px 16px 0 0;
+            min-height: 120px;
+          ">
+            <div style="font-size: 48px;">🎵</div>
+            <div style="color: white; font-size: 14px; margin-top: 10px; font-weight: bold;">
+              ${data.author}
+            </div>
+          </div>
+        `;
+        mediaSlot.appendChild(audio);
+        container.classList.add('visible');
+        return;
+      }
 
       let el;
       if (data.type === 'video') {
