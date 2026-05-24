@@ -43,7 +43,7 @@ client.on('clientReady', () => {
   console.log(`Bot connecté : ${client.user.tag}`);
 });
 
-client.on('messageCreate', message => {
+client.on('messageCreate', async message => {
   if (message.author.bot) return;
   if (message.channel.name !== 'overlay-media') return;
 
@@ -84,6 +84,17 @@ client.on('messageCreate', message => {
       }
     });
     message.react('▶️');
+    return;
+  }
+
+  if (message.content === '!purge') {
+    try {
+      const messages = await message.channel.messages.fetch({ limit: 100 });
+      await message.channel.bulkDelete(messages);
+      console.log('Channel purgé');
+    } catch (err) {
+      console.error('Erreur purge:', err);
+    }
     return;
   }
 

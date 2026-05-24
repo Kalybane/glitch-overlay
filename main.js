@@ -6,19 +6,36 @@ const Menu = electron.Menu;
 const screen = electron.screen;
 const ipcMain = electron.ipcMain;
 const path = require('path');
-const Store = require('electron-store');
-const store = new Store();
+const fs = require('fs');
 
+let settingsPath;
 let win;
 let tray;
 let settingsWin = null;
-let settings = store.get('settings', {
-  active: true,
-  duration: 8,
-  position: { x: null, y: null },
-  size: 'medium',
-  volume: 100
-});
+let settings;
+
+function loadSettings() {
+  try {
+    if (fs.existsSync(settingsPath)) {
+      return JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+    }
+  } catch (e) {}
+  return {
+    active: true,
+    duration: 8,
+    position: { x: null, y: null },
+    size: 'medium',
+    volume: 100
+  };
+}
+
+function saveSettings() {
+  try {
+    fs.writeFileSync(settingsPath, JSON.stringify(settings));
+  } catch (e) {
+    console.error('Erreur sauvegarde settings:', e);
+  }
+}
 
 function createOverlay() {
   const primaryDisplay = screen.getPrimaryDisplay();
@@ -80,7 +97,7 @@ function sendSettings() {
 }
 
 function saveAndSend() {
-  store.set('settings', settings);
+  saveSettings();
   sendSettings();
   updateTrayMenu();
 }
@@ -209,11 +226,13 @@ function createTray() {
 }
 
 app.whenReady().then(() => {
+  settingsPath = path.join(app.getPath('userData'), 'settings.json');
+  settings = loadSettings();
+
   createOverlay();
   createTray();
   createEasterEgg();
 
-  // Envoie les settings sauvegardés au démarrage
   win.webContents.on('did-finish-load', () => {
     sendSettings();
   });
