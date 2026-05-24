@@ -13,11 +13,12 @@
       "target": "nsis"
     },
     "files": [
-      "index.html",
-      "main.js",
-      "package.json",
-      "icon.png"
-    ]
+  "index.html",
+  "main.js",
+  "package.json",
+  "icon.png",
+  "settings.html"
+]
   },
   "dependencies": {
     "discord.js": "^14.0.0",
