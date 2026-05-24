@@ -30,6 +30,7 @@
   "dependencies": {
     "discord.js": "^14.0.0",
     "dotenv": "^17.4.2",
+    "electron-store": "^11.0.2",
     "ws": "^8.0.0"
   },
   "devDependencies": {

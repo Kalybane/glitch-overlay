@@ -6,6 +6,8 @@ const Menu = electron.Menu;
 const screen = electron.screen;
 const ipcMain = electron.ipcMain;
 const path = require('path');
+const Store = require('electron-store');
+const store = new Store();
 
 let win;
 let tray;
