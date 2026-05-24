@@ -3,6 +3,7 @@ const WebSocket = require('ws');
 
 require('dotenv').config();
 const TOKEN = process.env.TOKEN;
+const WS_PASSWORD = 'GlitchOverlay2026!';
 
 const client = new Client({
   intents: [
@@ -16,8 +17,21 @@ const wss = new WebSocket.Server({ port: 8080 });
 let overlays = [];
 
 wss.on('connection', ws => {
-  console.log('Overlay connecté');
-  overlays.push(ws);
+  let authenticated = false;
+
+  ws.on('message', msg => {
+    if (!authenticated) {
+      if (msg.toString() === WS_PASSWORD) {
+        authenticated = true;
+        overlays.push(ws);
+        console.log('Overlay authentifié');
+      } else {
+        console.log('Mot de passe incorrect, connexion refusée');
+        ws.close();
+      }
+      return;
+    }
+  });
 
   ws.on('close', () => {
     console.log('Overlay déconnecté');
@@ -40,11 +54,11 @@ client.on('messageCreate', message => {
       const isVideo = att.contentType?.startsWith('video/');
 
       const payload = {
-  type: isVideo ? 'video' : 'image',
-  url: att.url,
-  author: message.member.displayName,
-  avatar: `https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.png`
-};
+        type: isVideo ? 'video' : 'image',
+        url: att.url,
+        author: message.member.displayName,
+        avatar: `https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.png`
+      };
 
       overlays.forEach(ws => {
         if (ws.readyState === WebSocket.OPEN) {

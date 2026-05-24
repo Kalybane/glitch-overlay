@@ -91,6 +91,8 @@
     const authorAvatar = document.getElementById('author-avatar');
     const authorName = document.getElementById('author-name');
 
+    const WS_PASSWORD = 'GlitchOverlay2026!';
+
     let hideTimer = null;
     let overlayEnabled = true;
     let queue = [];
@@ -191,11 +193,16 @@
     function connect() {
       const ws = new WebSocket('wss://glitch-overlay-production.up.railway.app');
 
-      ws.onopen = () => console.log('WS connecté');
+      ws.onopen = () => {
+        ws.send(WS_PASSWORD);
+        console.log('WS connecté');
+      };
+
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
         showMedia(data);
       };
+
       ws.onclose = () => {
         console.log('WS fermé, reconnexion dans 3s...');
         setTimeout(connect, 3000);
