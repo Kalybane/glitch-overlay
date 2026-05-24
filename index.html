@@ -20,8 +20,7 @@
       box-shadow: 0 8px 32px rgba(0,0,0,0.5);
       background: #111;
       opacity: 0;
-      transform: translateY(30px);
-      transition: opacity 0.4s ease, transform 0.4s ease;
+      transition: opacity 0.4s ease;
       width: 420px;
       bottom: 40px;
       right: 40px;
@@ -29,7 +28,6 @@
 
     #media-container.visible {
       opacity: 1;
-      transform: translateY(0);
     }
 
     #media-wrapper {
@@ -107,15 +105,15 @@
     };
 
     const positions = {
-      'top-left':      { top: '40px',  left: '40px',        bottom: 'auto', right: 'auto',  transform: 'none' },
-      'top-center':    { top: '40px',  left: '50%',         bottom: 'auto', right: 'auto',  transform: 'translateX(-50%)' },
-      'top-right':     { top: '40px',  right: '40px',       bottom: 'auto', left: 'auto',   transform: 'none' },
-      'middle-left':   { top: '50%',   left: '40px',        bottom: 'auto', right: 'auto',  transform: 'translateY(-50%)' },
-      'center':        { top: '50%',   left: '50%',         bottom: 'auto', right: 'auto',  transform: 'translate(-50%, -50%)' },
-      'middle-right':  { top: '50%',   right: '40px',       bottom: 'auto', left: 'auto',   transform: 'translateY(-50%)' },
-      'bottom-left':   { bottom: '40px', left: '40px',      top: 'auto',    right: 'auto',  transform: 'none' },
-      'bottom-center': { bottom: '40px', left: '50%',       top: 'auto',    right: 'auto',  transform: 'translateX(-50%)' },
-      'bottom-right':  { bottom: '40px', right: '40px',     top: 'auto',    left: 'auto',   transform: 'none' },
+      'top-left':      { top: '40px',    left: '40px',  bottom: null, right: null },
+      'top-center':    { top: '40px',    left: '50%',   bottom: null, right: null, marginLeft: '-210px' },
+      'top-right':     { top: '40px',    right: '40px', bottom: null, left: null  },
+      'middle-left':   { top: '50%',     left: '40px',  bottom: null, right: null, marginTop: '-160px' },
+      'center':        { top: '50%',     left: '50%',   bottom: null, right: null, marginTop: '-160px', marginLeft: '-210px' },
+      'middle-right':  { top: '50%',     right: '40px', bottom: null, left: null,  marginTop: '-160px' },
+      'bottom-left':   { bottom: '40px', left: '40px',  top: null,    right: null },
+      'bottom-center': { bottom: '40px', left: '50%',   top: null,    right: null, marginLeft: '-210px' },
+      'bottom-right':  { bottom: '40px', right: '40px', top: null,    left: null  },
     };
 
     function applySettings(settings) {
@@ -124,14 +122,22 @@
       currentVolume = settings.volume / 100;
       container.style.width = sizes[settings.size];
 
-      const pos = positions[settings.position];
-      container.style.top       = pos.top       || 'auto';
-      container.style.left      = pos.left      || 'auto';
-      container.style.bottom    = pos.bottom    || 'auto';
-      container.style.right     = pos.right     || 'auto';
-      container.style.transform = pos.transform || 'none';
+      // Reset toutes les positions
+      container.style.top        = 'auto';
+      container.style.left       = 'auto';
+      container.style.bottom     = 'auto';
+      container.style.right      = 'auto';
+      container.style.marginTop  = '0';
+      container.style.marginLeft = '0';
 
-      // Applique le volume aux vidéos en cours
+      const pos = positions[settings.position];
+      if (pos.top)        container.style.top        = pos.top;
+      if (pos.left)       container.style.left       = pos.left;
+      if (pos.bottom)     container.style.bottom     = pos.bottom;
+      if (pos.right)      container.style.right      = pos.right;
+      if (pos.marginTop)  container.style.marginTop  = pos.marginTop;
+      if (pos.marginLeft) container.style.marginLeft = pos.marginLeft;
+
       const videos = mediaSlot.querySelectorAll('video');
       videos.forEach(v => v.volume = currentVolume);
 
