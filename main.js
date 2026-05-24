@@ -12,13 +12,13 @@ const store = new Store();
 let win;
 let tray;
 let settingsWin = null;
-let settings = {
+let settings = store.get('settings', {
   active: true,
   duration: 8,
   position: { x: null, y: null },
   size: 'medium',
   volume: 100
-};
+});
 
 function createOverlay() {
   const primaryDisplay = screen.getPrimaryDisplay();
@@ -79,10 +79,15 @@ function sendSettings() {
   win.webContents.send('update-settings', settings);
 }
 
-ipcMain.on('save-settings', (event, newSettings) => {
-  settings = { ...settings, ...newSettings };
+function saveAndSend() {
+  store.set('settings', settings);
   sendSettings();
   updateTrayMenu();
+}
+
+ipcMain.on('save-settings', (event, newSettings) => {
+  settings = { ...settings, ...newSettings };
+  saveAndSend();
 });
 
 function createEasterEgg() {
@@ -151,8 +156,7 @@ function createTray() {
         label: settings.active ? 'Desactiver' : 'Activer',
         click: () => {
           settings.active = !settings.active;
-          sendSettings();
-          updateTrayMenu();
+          saveAndSend();
         }
       },
       { type: 'separator' },
@@ -164,30 +168,30 @@ function createTray() {
       {
         label: 'Duree affichage',
         submenu: [
-          { label: '3 secondes',  type: 'radio', checked: settings.duration === 3,  click: () => { settings.duration = 3;  sendSettings(); updateTrayMenu(); } },
-          { label: '5 secondes',  type: 'radio', checked: settings.duration === 5,  click: () => { settings.duration = 5;  sendSettings(); updateTrayMenu(); } },
-          { label: '8 secondes',  type: 'radio', checked: settings.duration === 8,  click: () => { settings.duration = 8;  sendSettings(); updateTrayMenu(); } },
-          { label: '15 secondes', type: 'radio', checked: settings.duration === 15, click: () => { settings.duration = 15; sendSettings(); updateTrayMenu(); } },
-          { label: '30 secondes', type: 'radio', checked: settings.duration === 30, click: () => { settings.duration = 30; sendSettings(); updateTrayMenu(); } },
+          { label: '3 secondes',  type: 'radio', checked: settings.duration === 3,  click: () => { settings.duration = 3;  saveAndSend(); } },
+          { label: '5 secondes',  type: 'radio', checked: settings.duration === 5,  click: () => { settings.duration = 5;  saveAndSend(); } },
+          { label: '8 secondes',  type: 'radio', checked: settings.duration === 8,  click: () => { settings.duration = 8;  saveAndSend(); } },
+          { label: '15 secondes', type: 'radio', checked: settings.duration === 15, click: () => { settings.duration = 15; saveAndSend(); } },
+          { label: '30 secondes', type: 'radio', checked: settings.duration === 30, click: () => { settings.duration = 30; saveAndSend(); } },
         ]
       },
       {
         label: 'Taille',
         submenu: [
-          { label: 'Petit',  type: 'radio', checked: settings.size === 'small',    click: () => { settings.size = 'small';    sendSettings(); updateTrayMenu(); } },
-          { label: 'Moyen',  type: 'radio', checked: settings.size === 'medium',   click: () => { settings.size = 'medium';   sendSettings(); updateTrayMenu(); } },
-          { label: 'Grand',  type: 'radio', checked: settings.size === 'large',    click: () => { settings.size = 'large';    sendSettings(); updateTrayMenu(); } },
-          { label: 'Enorme', type: 'radio', checked: settings.size === 'enormous', click: () => { settings.size = 'enormous'; sendSettings(); updateTrayMenu(); } },
+          { label: 'Petit',  type: 'radio', checked: settings.size === 'small',    click: () => { settings.size = 'small';    saveAndSend(); } },
+          { label: 'Moyen',  type: 'radio', checked: settings.size === 'medium',   click: () => { settings.size = 'medium';   saveAndSend(); } },
+          { label: 'Grand',  type: 'radio', checked: settings.size === 'large',    click: () => { settings.size = 'large';    saveAndSend(); } },
+          { label: 'Enorme', type: 'radio', checked: settings.size === 'enormous', click: () => { settings.size = 'enormous'; saveAndSend(); } },
         ]
       },
       {
         label: 'Volume',
         submenu: [
-          { label: '0% (muet)', type: 'radio', checked: settings.volume === 0,   click: () => { settings.volume = 0;   sendSettings(); updateTrayMenu(); } },
-          { label: '25%',       type: 'radio', checked: settings.volume === 25,  click: () => { settings.volume = 25;  sendSettings(); updateTrayMenu(); } },
-          { label: '50%',       type: 'radio', checked: settings.volume === 50,  click: () => { settings.volume = 50;  sendSettings(); updateTrayMenu(); } },
-          { label: '75%',       type: 'radio', checked: settings.volume === 75,  click: () => { settings.volume = 75;  sendSettings(); updateTrayMenu(); } },
-          { label: '100%',      type: 'radio', checked: settings.volume === 100, click: () => { settings.volume = 100; sendSettings(); updateTrayMenu(); } },
+          { label: '0% (muet)', type: 'radio', checked: settings.volume === 0,   click: () => { settings.volume = 0;   saveAndSend(); } },
+          { label: '25%',       type: 'radio', checked: settings.volume === 25,  click: () => { settings.volume = 25;  saveAndSend(); } },
+          { label: '50%',       type: 'radio', checked: settings.volume === 50,  click: () => { settings.volume = 50;  saveAndSend(); } },
+          { label: '75%',       type: 'radio', checked: settings.volume === 75,  click: () => { settings.volume = 75;  saveAndSend(); } },
+          { label: '100%',      type: 'radio', checked: settings.volume === 100, click: () => { settings.volume = 100; saveAndSend(); } },
         ]
       },
       { type: 'separator' },
@@ -208,6 +212,11 @@ app.whenReady().then(() => {
   createOverlay();
   createTray();
   createEasterEgg();
+
+  // Envoie les settings sauvegardés au démarrage
+  win.webContents.on('did-finish-load', () => {
+    sendSettings();
+  });
 });
 
 app.on('window-all-closed', () => {
