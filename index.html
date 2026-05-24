@@ -255,6 +255,20 @@
 
     function hideMedia() {
       container.classList.remove('visible');
+
+      const videos = mediaSlot.querySelectorAll('video');
+      videos.forEach(v => {
+        v.pause();
+        v.src = '';
+      });
+
+      const audios = mediaSlot.querySelectorAll('audio');
+      audios.forEach(a => {
+        a.pause();
+        a.src = '';
+      });
+
+      mediaSlot.innerHTML = '';
     }
 
     function connect() {
