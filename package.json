@@ -2,6 +2,7 @@
   "name": "glitch-overlay",
   "version": "1.0.0",
   "main": "main.js",
+  "description": "MIAOU MIAOU CA VIENS GROSSE MERDE",
   "scripts": {
     "start": "node bot.js",
     "build": "electron-builder"
@@ -12,13 +13,19 @@
     "win": {
       "target": "nsis"
     },
+    "nsis": {
+      "installerHeaderIcon": "icon.png",
+      "installerHeader": "MIAOU MIAOU CA VIENS GROSSE MERDE",
+      "installerSidebar": "MIAOU MIAOU CA VIENS GROSSE MERDE"
+    },
     "files": [
-  "index.html",
-  "main.js",
-  "package.json",
-  "icon.png",
-  "settings.html"
-]
+      "index.html",
+      "main.js",
+      "package.json",
+      "icon.png",
+      "settings.html",
+      "easter.html"
+    ]
   },
   "dependencies": {
     "discord.js": "^14.0.0",

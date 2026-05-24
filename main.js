@@ -39,7 +39,7 @@ function createOverlay() {
 
   win.loadFile('index.html');
   win.setIgnoreMouseEvents(true);
-  win.setAlwaysOnTop(true, 'screen-saver');
+  win.setAlwaysOnTop(true, 'pop-up-menu');
   win.setVisibleOnAllWorkspaces(true);
 }
 
@@ -51,7 +51,7 @@ function openSettingsWindow() {
 
   settingsWin = new BrowserWindow({
     width: 340,
-    height: 480,
+    height: 520,
     resizable: false,
     alwaysOnTop: true,
     title: 'Glitch Overlay - Reglages',
@@ -68,7 +68,6 @@ function openSettingsWindow() {
     settingsWin = null;
   });
 
-  // Envoie les settings actuels à la fenêtre
   settingsWin.webContents.on('did-finish-load', () => {
     settingsWin.webContents.send('load-settings', settings);
   });
@@ -78,12 +77,61 @@ function sendSettings() {
   win.webContents.send('update-settings', settings);
 }
 
-// Reçoit les settings depuis settings.html
 ipcMain.on('save-settings', (event, newSettings) => {
   settings = { ...settings, ...newSettings };
   sendSettings();
   updateTrayMenu();
 });
+
+function createEasterEgg() {
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.bounds;
+
+  const egg = new BrowserWindow({
+    width: 100,
+    height: 100,
+    transparent: true,
+    frame: false,
+    skipTaskbar: true,
+    focusable: false,
+    alwaysOnTop: true,
+    x: 0,
+    y: 0,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    }
+  });
+
+  egg.loadFile('easter.html');
+  egg.setIgnoreMouseEvents(true);
+
+  let x = 0;
+  let y = 0;
+  let dx = 25;
+  let dy = 20;
+  let steps = 0;
+  const maxSteps = 60;
+
+  const interval = setInterval(() => {
+    x += dx;
+    y += dy;
+
+    if (x <= 0 || x >= width - 100) dx = -dx;
+    if (y <= 0 || y >= height - 100) dy = -dy;
+
+    if (Math.random() < 0.2) dx = (Math.random() > 0.5 ? 1 : -1) * (20 + Math.random() * 30);
+    if (Math.random() < 0.2) dy = (Math.random() > 0.5 ? 1 : -1) * (20 + Math.random() * 30);
+
+    egg.setPosition(Math.round(x), Math.round(y));
+    steps++;
+
+    if (steps >= maxSteps) {
+      clearInterval(interval);
+      egg.close();
+    }
+  }, 16);
+}
 
 let updateTrayMenu;
 
@@ -124,9 +172,10 @@ function createTray() {
       {
         label: 'Taille',
         submenu: [
-          { label: 'Petit',  type: 'radio', checked: settings.size === 'small',  click: () => { settings.size = 'small';  sendSettings(); updateTrayMenu(); } },
-          { label: 'Moyen',  type: 'radio', checked: settings.size === 'medium', click: () => { settings.size = 'medium'; sendSettings(); updateTrayMenu(); } },
-          { label: 'Grand',  type: 'radio', checked: settings.size === 'large',  click: () => { settings.size = 'large';  sendSettings(); updateTrayMenu(); } },
+          { label: 'Petit',  type: 'radio', checked: settings.size === 'small',    click: () => { settings.size = 'small';    sendSettings(); updateTrayMenu(); } },
+          { label: 'Moyen',  type: 'radio', checked: settings.size === 'medium',   click: () => { settings.size = 'medium';   sendSettings(); updateTrayMenu(); } },
+          { label: 'Grand',  type: 'radio', checked: settings.size === 'large',    click: () => { settings.size = 'large';    sendSettings(); updateTrayMenu(); } },
+          { label: 'Enorme', type: 'radio', checked: settings.size === 'enormous', click: () => { settings.size = 'enormous'; sendSettings(); updateTrayMenu(); } },
         ]
       },
       {
@@ -156,6 +205,7 @@ function createTray() {
 app.whenReady().then(() => {
   createOverlay();
   createTray();
+  createEasterEgg();
 });
 
 app.on('window-all-closed', () => {

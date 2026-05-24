@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reglages</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: sans-serif;
+      background: #1e1e2e;
+      color: white;
+      padding: 24px;
+    }
+    h2 {
+      font-size: 18px;
+      margin-bottom: 24px;
+      color: #cba6f7;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    .section label {
+      display: block;
+      font-size: 13px;
+      color: #a6adc8;
+      margin-bottom: 6px;
+    }
+    .section input {
+      width: 100%;
+      padding: 10px 12px;
+      background: #313244;
+      border: 1px solid #45475a;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      outline: none;
+    }
+    .section input:focus {
+      border-color: #cba6f7;
+    }
+    .row {
+      display: flex;
+      gap: 12px;
+    }
+    .row .section {
+      flex: 1;
+    }
+    .info {
+      background: #313244;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      color: #a6adc8;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    .screen-info {
+      background: #45475a;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #cdd6f4;
+      margin-bottom: 20px;
+    }
+    .btn-save {
+      width: 100%;
+      padding: 12px;
+      background: #cba6f7;
+      color: #1e1e2e;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .btn-save:hover {
+      background: #b4befe;
+    }
+    .btn-center {
+      width: 100%;
+      padding: 10px;
+      background: #89b4fa;
+      color: #1e1e2e;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .btn-center:hover {
+      background: #74c7ec;
+    }
+    .btn-reset {
+      width: 100%;
+      padding: 10px;
+      background: transparent;
+      color: #a6adc8;
+      border: 1px solid #45475a;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .btn-reset:hover {
+      background: #313244;
+    }
+    .success {
+      display: none;
+      text-align: center;
+      color: #a6e3a1;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Reglages de position</h2>
+
+  <div class="screen-info" id="screen-info">
+    Ecran : chargement...
+  </div>
+
+  <div class="info">
+    X = distance depuis la gauche de l'ecran (en pixels)<br>
+    Y = distance depuis le haut de l'ecran (en pixels)<br>
+    Exemple : X=50, Y=50 = coin haut gauche
+  </div>
+
+  <div class="row">
+    <div class="section">
+      <label>Position X (pixels)</label>
+      <input type="number" id="pos-x" placeholder="ex: 50" min="0" />
+    </div>
+    <div class="section">
+      <label>Position Y (pixels)</label>
+      <input type="number" id="pos-y" placeholder="ex: 50" min="0" />
+    </div>
+  </div>
+
+  <button class="btn-save" onclick="saveSettings()">Appliquer</button>
+  <button class="btn-center" onclick="centerPosition()">Centrer sur l'ecran</button>
+  <button class="btn-reset" onclick="resetPosition()">Remettre en bas a droite</button>
+
+  <div class="success" id="success">Position appliquee !</div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    document.getElementById('screen-info').textContent =
+      'Ecran principal : ' + window.screen.width + ' x ' + window.screen.height + ' px';
+
+    ipcRenderer.on('load-settings', (event, settings) => {
+      if (settings.position && settings.position.x !== null) {
+        document.getElementById('pos-x').value = settings.position.x;
+        document.getElementById('pos-y').value = settings.position.y;
+      }
+    });
+
+    function saveSettings() {
+      const x = parseInt(document.getElementById('pos-x').value);
+      const y = parseInt(document.getElementById('pos-y').value);
+
+      if (isNaN(x) || isNaN(y)) {
+        alert('Entre des coordonnees valides !');
+        return;
+      }
+
+      ipcRenderer.send('save-settings', { position: { x, y } });
+
+      const success = document.getElementById('success');
+      success.style.display = 'block';
+      setTimeout(() => success.style.display = 'none', 2000);
+    }
+
+    function centerPosition() {
+      const sw = window.screen.width;
+      const sh = window.screen.height;
+      const w = 420;
+      const h = 315;
+      const x = Math.round((sw - w) / 2);
+      const y = Math.round((sh - h) / 2);
+
+      document.getElementById('pos-x').value = x;
+      document.getElementById('pos-y').value = y;
+
+      ipcRenderer.send('save-settings', { position: { x, y } });
+
+      const success = document.getElementById('success');
+      success.style.display = 'block';
+      setTimeout(() => success.style.display = 'none', 2000);
+    }
+
+    function resetPosition() {
+      document.getElementById('pos-x').value = '';
+      document.getElementById('pos-y').value = '';
+      ipcRenderer.send('save-settings', { position: { x: null, y: null } });
+    }
+  </script>
+</body>
+</html>

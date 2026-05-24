@@ -114,44 +114,26 @@
     let currentDuration = 8000;
     let currentVolume = 1.0;
 
-    const sizes = {
-      small:  '220px',
-      medium: '420px',
-      large:  '640px'
-    };
-
-    const positions = {
-      'top-left':      { top: '40px',    left: '40px',  bottom: null, right: null },
-      'top-center':    { top: '40px',    left: '50%',   bottom: null, right: null, marginLeft: '-210px' },
-      'top-right':     { top: '40px',    right: '40px', bottom: null, left: null  },
-      'middle-left':   { top: '50%',     left: '40px',  bottom: null, right: null, marginTop: '-160px' },
-      'center':        { top: '50%',     left: '50%',   bottom: null, right: null, marginTop: '-160px', marginLeft: '-210px' },
-      'middle-right':  { top: '50%',     right: '40px', bottom: null, left: null,  marginTop: '-160px' },
-      'bottom-left':   { bottom: '40px', left: '40px',  top: null,    right: null },
-      'bottom-center': { bottom: '40px', left: '50%',   top: null,    right: null, marginLeft: '-210px' },
-      'bottom-right':  { bottom: '40px', right: '40px', top: null,    left: null  },
-    };
-
     function applySettings(settings) {
       overlayEnabled = settings.active;
       currentDuration = settings.duration * 1000;
       currentVolume = settings.volume / 100;
-      container.style.width = sizes[settings.size];
 
-      container.style.top        = 'auto';
-      container.style.left       = 'auto';
-      container.style.bottom     = 'auto';
-      container.style.right      = 'auto';
-      container.style.marginTop  = '0';
-      container.style.marginLeft = '0';
+      const w = settings.size === 'small' ? 220 : settings.size === 'large' ? 640 : settings.size === 'enormous' ? 840 : 420;
+      container.style.width = w + 'px';
 
-      const pos = positions[settings.position];
-      if (pos.top)        container.style.top        = pos.top;
-      if (pos.left)       container.style.left       = pos.left;
-      if (pos.bottom)     container.style.bottom     = pos.bottom;
-      if (pos.right)      container.style.right      = pos.right;
-      if (pos.marginTop)  container.style.marginTop  = pos.marginTop;
-      if (pos.marginLeft) container.style.marginLeft = pos.marginLeft;
+      container.style.top    = 'auto';
+      container.style.left   = 'auto';
+      container.style.bottom = 'auto';
+      container.style.right  = 'auto';
+
+      if (settings.position && settings.position.x !== null) {
+        container.style.left = settings.position.x + 'px';
+        container.style.top  = settings.position.y + 'px';
+      } else {
+        container.style.bottom = '40px';
+        container.style.right  = '40px';
+      }
 
       const videos = mediaSlot.querySelectorAll('video');
       videos.forEach(v => v.volume = currentVolume);
