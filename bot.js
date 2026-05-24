@@ -47,6 +47,46 @@ client.on('messageCreate', message => {
   if (message.author.bot) return;
   if (message.channel.name !== 'overlay-media') return;
 
+  if (message.content === '!skip') {
+    overlays.forEach(ws => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'skip' }));
+      }
+    });
+    message.react('⏭️');
+    return;
+  }
+
+  if (message.content === '!clear') {
+    overlays.forEach(ws => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'clear' }));
+      }
+    });
+    message.react('🗑️');
+    return;
+  }
+
+  if (message.content === '!pause') {
+    overlays.forEach(ws => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'pause' }));
+      }
+    });
+    message.react('⏸️');
+    return;
+  }
+
+  if (message.content === '!resume') {
+    overlays.forEach(ws => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'resume' }));
+      }
+    });
+    message.react('▶️');
+    return;
+  }
+
   if (message.attachments.size > 0) {
     message.attachments.forEach(att => {
       console.log('Média reçu :', att.url);

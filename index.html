@@ -199,9 +199,35 @@
       };
 
       ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        showMedia(data);
-      };
+  const data = JSON.parse(event.data);
+
+  if (data.type === 'skip') {
+    hideMedia();
+    setTimeout(playNext, 500);
+    return;
+  }
+
+  if (data.type === 'clear') {
+    queue = [];
+    hideMedia();
+    isPlaying = false;
+    return;
+  }
+
+  if (data.type === 'pause') {
+    overlayEnabled = false;
+    hideMedia();
+    return;
+  }
+
+  if (data.type === 'resume') {
+    overlayEnabled = true;
+    if (queue.length > 0) playNext();
+    return;
+  }
+
+  showMedia(data);
+};
 
       ws.onclose = () => {
         console.log('WS fermé, reconnexion dans 3s...');
