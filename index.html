@@ -64,31 +64,30 @@
       display: none;
     }
 
- #caption {
-  position: absolute;
-  bottom: 10px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 28px;
-  font-weight: bold;
-  color: white;
-  letter-spacing: 0px;
-  background: transparent;
-  padding: 0 14px;
-  text-shadow:
-    2px 2px 0 black,
-    -2px -2px 0 black,
-    2px -2px 0 black,
-    -2px 2px 0 black,
-    0px 2px 0 black,
-    0px -2px 0 black,
-    2px 0px 0 black,
-    -2px 0px 0 black;
-  display: none;
-  -webkit-font-smoothing: antialiased;
-}
+    #caption {
+      position: absolute;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 28px;
+      font-weight: bold;
+      color: white;
+      background: transparent;
+      padding: 0 14px;
+      text-shadow:
+        2px 2px 0 black,
+        -2px -2px 0 black,
+        2px -2px 0 black,
+        -2px 2px 0 black,
+        0px 2px 0 black,
+        0px -2px 0 black,
+        2px 0px 0 black,
+        -2px 0px 0 black;
+      display: none;
+      -webkit-font-smoothing: antialiased;
+    }
 
     #caption.visible {
       display: block;
@@ -124,30 +123,116 @@
     let isPlaying = false;
     let currentDuration = 8000;
     let currentVolume = 1.0;
+    let currentPosition = null;
+    let currentSize = 'medium';
+    let bounceInterval = null;
+    let isBouncing = false;
+
+    const presetPositions = {
+      'top-left':      { top: '40px',    left: '40px',  bottom: 'auto', right: 'auto' },
+      'top-center':    { top: '40px',    left: '50%',   bottom: 'auto', right: 'auto', marginLeft: true },
+      'top-right':     { top: '40px',    right: '40px', bottom: 'auto', left: 'auto'  },
+      'middle-left':   { top: '50%',     left: '40px',  bottom: 'auto', right: 'auto', marginTop: true },
+      'center':        { top: '50%',     left: '50%',   bottom: 'auto', right: 'auto', marginTop: true, marginLeft: true },
+      'middle-right':  { top: '50%',     right: '40px', bottom: 'auto', left: 'auto',  marginTop: true },
+      'bottom-left':   { bottom: '40px', left: '40px',  top: 'auto',    right: 'auto' },
+      'bottom-center': { bottom: '40px', left: '50%',   top: 'auto',    right: 'auto', marginLeft: true },
+      'bottom-right':  { bottom: '40px', right: '40px', top: 'auto',    left: 'auto'  },
+    };
+
+    function getWidth() {
+      return currentSize === 'small' ? 220 : currentSize === 'large' ? 640 : currentSize === 'enormous' ? 840 : 420;
+    }
+
+    function startBounce() {
+      if (bounceInterval) clearInterval(bounceInterval);
+      isBouncing = true;
+
+      const w = getWidth();
+      const h = container.offsetHeight || Math.round(w * 0.75);
+      const sw = window.screen.width;
+      const sh = window.screen.height;
+
+      let x = Math.random() * (sw - w);
+      let y = Math.random() * (sh - h);
+      let dx = (Math.random() > 0.5 ? 1 : -1) * (3 + Math.random() * 4);
+      let dy = (Math.random() > 0.5 ? 1 : -1) * (3 + Math.random() * 4);
+
+      container.style.transition = 'opacity 0.4s ease';
+      container.style.bottom = 'auto';
+      container.style.right = 'auto';
+
+      bounceInterval = setInterval(() => {
+        x += dx;
+        y += dy;
+
+        if (x <= 0) { x = 0; dx = Math.abs(dx); }
+        if (x >= sw - w) { x = sw - w; dx = -Math.abs(dx); }
+        if (y <= 0) { y = 0; dy = Math.abs(dy); }
+        if (y >= sh - h) { y = sh - h; dy = -Math.abs(dy); }
+
+        container.style.left = Math.round(x) + 'px';
+        container.style.top  = Math.round(y) + 'px';
+      }, 16);
+    }
+
+    function stopBounce() {
+      if (bounceInterval) clearInterval(bounceInterval);
+      bounceInterval = null;
+      isBouncing = false;
+    }
+
+    function applyPosition(position) {
+      container.style.top        = 'auto';
+      container.style.left       = 'auto';
+      container.style.bottom     = 'auto';
+      container.style.right      = 'auto';
+      container.style.marginTop  = '0';
+      container.style.marginLeft = '0';
+
+      if (!position) {
+        if (currentPosition && currentPosition.x !== null) {
+          container.style.left = currentPosition.x + 'px';
+          container.style.top  = currentPosition.y + 'px';
+        } else {
+          container.style.bottom = '40px';
+          container.style.right  = '40px';
+        }
+        return;
+      }
+
+      if (position.type === 'xy') {
+        container.style.left = position.x + 'px';
+        container.style.top  = position.y + 'px';
+      } else if (position.type === 'preset') {
+        const pos = presetPositions[position.preset];
+        if (!pos) return;
+        const w = getWidth();
+        const h = Math.round(w * 0.75);
+
+        if (pos.top)    container.style.top    = pos.top;
+        if (pos.left)   container.style.left   = pos.left;
+        if (pos.bottom) container.style.bottom = pos.bottom;
+        if (pos.right)  container.style.right  = pos.right;
+        if (pos.marginLeft) container.style.marginLeft = `-${Math.round(w / 2)}px`;
+        if (pos.marginTop)  container.style.marginTop  = `-${Math.round(h / 2)}px`;
+      }
+    }
 
     function applySettings(settings) {
       overlayEnabled = settings.active;
       currentDuration = settings.duration * 1000;
       currentVolume = settings.volume / 100;
+      currentSize = settings.size;
 
-      const w = settings.size === 'small' ? 220 : settings.size === 'large' ? 640 : settings.size === 'enormous' ? 840 : 420;
+      const w = getWidth();
       container.style.width = w + 'px';
 
       const fontSize = settings.size === 'small' ? 16 : settings.size === 'large' ? 36 : settings.size === 'enormous' ? 48 : 28;
       caption.style.fontSize = fontSize + 'px';
 
-      container.style.top    = 'auto';
-      container.style.left   = 'auto';
-      container.style.bottom = 'auto';
-      container.style.right  = 'auto';
-
-      if (settings.position && settings.position.x !== null) {
-        container.style.left = settings.position.x + 'px';
-        container.style.top  = settings.position.y + 'px';
-      } else {
-        container.style.bottom = '40px';
-        container.style.right  = '40px';
-      }
+      currentPosition = settings.position;
+      if (!isBouncing) applyPosition(null);
 
       const videos = mediaSlot.querySelectorAll('video');
       videos.forEach(v => v.volume = currentVolume);
@@ -190,6 +275,14 @@
         caption.classList.remove('visible');
       }
 
+      if (!data.bounce && !isBouncing) {
+        if (data.position) {
+          applyPosition(data.position);
+        } else {
+          applyPosition(null);
+        }
+      }
+
       if (data.type === 'audio') {
         const audio = document.createElement('audio');
         audio.src = data.url;
@@ -215,6 +308,7 @@
         el.oncanplay = () => {
           mediaSlot.appendChild(el);
           container.classList.add('visible');
+          if (data.bounce || isBouncing) startBounce();
         };
         el.onended = () => {
           hideMedia();
@@ -226,6 +320,7 @@
         el.onload = () => {
           mediaSlot.appendChild(el);
           container.classList.add('visible');
+          if (data.bounce || isBouncing) startBounce();
           hideTimer = setTimeout(() => {
             hideMedia();
             setTimeout(playNext, 500);
@@ -236,6 +331,8 @@
 
     function hideMedia() {
       container.classList.remove('visible');
+      stopBounce();
+      applyPosition(null);
 
       const videos = mediaSlot.querySelectorAll('video');
       videos.forEach(v => {
@@ -286,6 +383,16 @@
         if (data.type === 'resume') {
           overlayEnabled = true;
           if (queue.length > 0) playNext();
+          return;
+        }
+
+        if (data.type === 'bounce') {
+          isBouncing = true;
+          return;
+        }
+
+        if (data.type === 'stopbounce') {
+          stopBounce();
           return;
         }
 
