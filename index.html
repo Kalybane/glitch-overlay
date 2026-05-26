@@ -17,7 +17,7 @@
       position: fixed;
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      box-shadow: none;
       background: #111;
       opacity: 0;
       transition: opacity 0.4s ease;
@@ -38,45 +38,57 @@
     #media-container video {
       width: 100%;
       display: block;
-      border-radius: 16px 16px 0 0;
+      border-radius: 16px;
     }
 
-    #author-banner {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(0,0,0,0.5);
-      padding: 6px 12px 6px 6px;
-      border-radius: 30px;
-      backdrop-filter: blur(4px);
-    }
+   #author-banner {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: transparent;
+  padding: 2px;
+  border-radius: 50%;
+}
 
     #author-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: 2px solid white;
-      object-fit: cover;
-    }
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #23d160;
+  object-fit: cover;
+  box-shadow: 0 0 5px rgba(35,209,96,0.3);
+  display: block;
+}
 
     #author-name {
-      color: white;
-      font-size: 13px;
-      font-weight: bold;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+      display: none;
     }
 
     #caption {
-      background: rgba(0,0,0,0.8);
+      position: absolute;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
       color: white;
-      padding: 10px 14px;
-      font-size: 14px;
-      line-height: 1.4;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow:
+        3px 3px 0 black,
+        -3px -3px 0 black,
+        3px -3px 0 black,
+        -3px 3px 0 black,
+        0px 3px 0 black,
+        0px -3px 0 black,
+        3px 0px 0 black,
+        -3px 0px 0 black,
+        0 4px 8px rgba(0,0,0,0.8);
+      padding: 0 14px;
       display: none;
-      border-radius: 0 0 16px 16px;
+      -webkit-font-smoothing: antialiased;
     }
 
     #caption.visible {
@@ -91,10 +103,10 @@
       <div id="media-slot"></div>
       <div id="author-banner">
         <img id="author-avatar" src="" alt="avatar" />
-        <span id="author-name">Pseudo</span>
+        <span id="author-name"></span>
       </div>
+      <div id="caption"></div>
     </div>
-    <div id="caption"></div>
   </div>
 
   <script>
@@ -121,6 +133,9 @@
 
       const w = settings.size === 'small' ? 220 : settings.size === 'large' ? 640 : settings.size === 'enormous' ? 840 : 420;
       container.style.width = w + 'px';
+
+      const fontSize = settings.size === 'small' ? 16 : settings.size === 'large' ? 36 : settings.size === 'enormous' ? 48 : 28;
+      caption.style.fontSize = fontSize + 'px';
 
       container.style.top    = 'auto';
       container.style.left   = 'auto';
@@ -167,7 +182,6 @@
       if (hideTimer) clearTimeout(hideTimer);
 
       authorAvatar.src = data.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png';
-      authorName.textContent = data.author || 'Inconnu';
 
       if (data.caption) {
         caption.textContent = data.caption;
@@ -196,7 +210,7 @@
             flex-direction: column;
             padding: 30px;
             background: linear-gradient(135deg, #1DB954, #191414);
-            border-radius: 16px 16px 0 0;
+            border-radius: 16px;
             min-height: 120px;
           ">
             <div style="font-size: 48px;">🎵</div>

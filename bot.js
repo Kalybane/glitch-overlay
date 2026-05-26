@@ -107,7 +107,7 @@ client.on('messageCreate', async message => {
 
       const payload = {
         type: isVideo ? 'video' : isAudio ? 'audio' : 'image',
-        url: att.url,
+        url: isVideo || isAudio ? att.url : att.url + '?width=800&quality=lossless',
         author: message.member.displayName,
         avatar: `https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.png`,
         caption: message.content || null
