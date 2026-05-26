@@ -7,6 +7,7 @@ const screen = electron.screen;
 const ipcMain = electron.ipcMain;
 const path = require('path');
 const fs = require('fs');
+const { autoUpdater } = require('electron-updater');
 
 let settingsPath;
 let win;
@@ -107,6 +108,31 @@ ipcMain.on('save-settings', (event, newSettings) => {
   saveAndSend();
 });
 
+function setupAutoUpdater() {
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('update-available', () => {
+    console.log('Mise a jour disponible, telechargement...');
+    tray.setToolTip('Glitch Overlay - Mise a jour en cours...');
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    console.log('Mise a jour telechargee !');
+    updateTrayMenu();
+  });
+
+  autoUpdater.on('error', (err) => {
+    console.error('Erreur mise a jour:', err);
+  });
+
+  // Vérifie les mises à jour toutes les 30 minutes
+  autoUpdater.checkForUpdates();
+  setInterval(() => {
+    autoUpdater.checkForUpdates();
+  }, 30 * 60 * 1000);
+}
+
 function createEasterEgg() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.bounds;
@@ -163,6 +189,8 @@ function createTray() {
   tray = new Tray(path.join(__dirname, 'icon.png'));
 
   updateTrayMenu = function() {
+    const updateAvailable = autoUpdater.updateDownloaded;
+
     const menu = Menu.buildFromTemplate([
       {
         label: settings.active ? 'Overlay actif' : 'Overlay desactive',
@@ -212,6 +240,11 @@ function createTray() {
         ]
       },
       { type: 'separator' },
+      ...(updateAvailable ? [{
+        label: 'Installer la mise a jour',
+        click: () => autoUpdater.quitAndInstall()
+      }] : []),
+      { type: 'separator' },
       {
         label: 'Quitter',
         click: () => app.quit()
@@ -226,12 +259,18 @@ function createTray() {
 }
 
 app.whenReady().then(() => {
+  app.setLoginItemSettings({
+    openAtLogin: true,
+    name: 'Glitch Overlay'
+  });
+
   settingsPath = path.join(app.getPath('userData'), 'settings.json');
   settings = loadSettings();
 
   createOverlay();
   createTray();
   createEasterEgg();
+  setupAutoUpdater();
 
   win.webContents.on('did-finish-load', () => {
     sendSettings();

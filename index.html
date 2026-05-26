@@ -18,7 +18,7 @@
       border-radius: 16px;
       overflow: hidden;
       box-shadow: none;
-      background: #111;
+      background: transparent;
       opacity: 0;
       transition: opacity 0.4s ease;
       width: 420px;
@@ -41,55 +41,54 @@
       border-radius: 16px;
     }
 
-   #author-banner {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  background: transparent;
-  padding: 2px;
-  border-radius: 50%;
-}
+    #author-banner {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: transparent;
+      padding: 2px;
+      border-radius: 50%;
+    }
 
     #author-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 2px solid #23d160;
-  object-fit: cover;
-  box-shadow: 0 0 5px rgba(35,209,96,0.3);
-  display: block;
-}
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid #23d160;
+      object-fit: cover;
+      box-shadow: 0 0 5px rgba(35,209,96,0.3);
+      display: block;
+    }
 
     #author-name {
       display: none;
     }
 
-    #caption {
-      position: absolute;
-      bottom: 10px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-      font-size: 28px;
-      font-weight: 900;
-      color: white;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      text-shadow:
-        3px 3px 0 black,
-        -3px -3px 0 black,
-        3px -3px 0 black,
-        -3px 3px 0 black,
-        0px 3px 0 black,
-        0px -3px 0 black,
-        3px 0px 0 black,
-        -3px 0px 0 black,
-        0 4px 8px rgba(0,0,0,0.8);
-      padding: 0 14px;
-      display: none;
-      -webkit-font-smoothing: antialiased;
-    }
+ #caption {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 28px;
+  font-weight: bold;
+  color: white;
+  letter-spacing: 0px;
+  background: transparent;
+  padding: 0 14px;
+  text-shadow:
+    2px 2px 0 black,
+    -2px -2px 0 black,
+    2px -2px 0 black,
+    -2px 2px 0 black,
+    0px 2px 0 black,
+    0px -2px 0 black,
+    2px 0px 0 black,
+    -2px 0px 0 black;
+  display: none;
+  -webkit-font-smoothing: antialiased;
+}
 
     #caption.visible {
       display: block;
@@ -201,52 +200,38 @@
           hideMedia();
           setTimeout(playNext, 500);
         };
-
-        mediaSlot.innerHTML = `
-          <div style="
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            padding: 30px;
-            background: linear-gradient(135deg, #1DB954, #191414);
-            border-radius: 16px;
-            min-height: 120px;
-          ">
-            <div style="font-size: 48px;">🎵</div>
-            <div style="color: white; font-size: 14px; margin-top: 10px; font-weight: bold;">
-              ${data.author}
-            </div>
-          </div>
-        `;
-        mediaSlot.appendChild(audio);
-        container.classList.add('visible');
+        document.body.appendChild(audio);
+        isPlaying = true;
         return;
       }
 
-      let el;
       if (data.type === 'video') {
-        el = document.createElement('video');
+        const el = document.createElement('video');
         el.src = data.url;
         el.autoplay = true;
         el.volume = currentVolume;
         el.controls = false;
         el.loop = false;
+        el.oncanplay = () => {
+          mediaSlot.appendChild(el);
+          container.classList.add('visible');
+        };
         el.onended = () => {
           hideMedia();
           setTimeout(playNext, 500);
         };
       } else {
-        el = document.createElement('img');
+        const el = document.createElement('img');
         el.src = data.url;
-        hideTimer = setTimeout(() => {
-          hideMedia();
-          setTimeout(playNext, 500);
-        }, currentDuration);
+        el.onload = () => {
+          mediaSlot.appendChild(el);
+          container.classList.add('visible');
+          hideTimer = setTimeout(() => {
+            hideMedia();
+            setTimeout(playNext, 500);
+          }, currentDuration);
+        };
       }
-
-      mediaSlot.appendChild(el);
-      container.classList.add('visible');
     }
 
     function hideMedia() {
@@ -258,10 +243,11 @@
         v.src = '';
       });
 
-      const audios = mediaSlot.querySelectorAll('audio');
+      const audios = document.querySelectorAll('audio');
       audios.forEach(a => {
         a.pause();
         a.src = '';
+        a.remove();
       });
 
       mediaSlot.innerHTML = '';
