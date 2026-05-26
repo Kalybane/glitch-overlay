@@ -5,7 +5,8 @@
   "description": "MIAOU MIAOU CA VIENS GROSSE MERDE",
   "scripts": {
     "start": "node bot.js",
-    "build": "electron-builder"
+    "build": "echo no build needed",
+    "package": "electron-builder"
   },
   "build": {
     "appId": "com.glitch.overlay",
@@ -33,13 +34,13 @@
     ]
   },
   "dependencies": {
-  "discord.js": "^14.0.0",
-  "dotenv": "^17.4.2",
-  "ws": "^8.0.0"
-},
-"devDependencies": {
-  "electron": "^28.3.3",
-  "electron-builder": "^24.0.0",
-  "electron-updater": "^6.8.3"
-}
+    "discord.js": "^14.0.0",
+    "dotenv": "^17.4.2",
+    "ws": "^8.0.0"
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^24.0.0",
+    "electron-updater": "^6.8.3"
+  }
 }
